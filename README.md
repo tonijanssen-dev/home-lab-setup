@@ -27,6 +27,8 @@ Dokumentation meines persönlichen Home Labs — aufgebaut für Ethical Hacking,
   - [Open WebUI via Docker](./windows-tower/open-webui-docker.md)
 - [Networking](./networking/)
   - [Heimnetz Übersicht](./networking/heimnetz-setup.md)
+- [DVWA Übungen](./dvwa/)
+  - [Brute Force — Burp Suite Intruder](./dvwa/dvwa-brute-force.md)
 
 ---
 
