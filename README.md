@@ -24,7 +24,6 @@ Dokumentation meines persönlichen Home Labs — aufgebaut für Ethical Hacking,
   - [Pwnagotchi & Bettercap](./raspberry-pi/pwnagotchi-bettercap.md)
   - [Offline KI & Tor](./raspberry-pi/offline-ki-tor.md)
   - [mentat-ai-node Setup](./raspberry-pi/mentat-ai-node.md)
-  - [N8N CVE Monitor](./raspberry-pi/n8n-cve-monitor.md)
 - [Tower Setup](./windows-tower/)
   - [Nobara KDE 43 (aktuell)](./windows-tower/nobara-setup.md)
   - [Windows 11 Setup (veraltet)](./windows-tower/windows-tower-veraltet.md)
@@ -32,6 +31,8 @@ Dokumentation meines persönlichen Home Labs — aufgebaut für Ethical Hacking,
   - [Heimnetz Übersicht](./networking/heimnetz-setup.md)
 - [DVWA Übungen](./dvwa/)
   - [Brute Force — Burp Suite Intruder](./dvwa/dvwa-brute-force.md)
+- [Eigene Projekte](./eigene-projekte/)
+  - [N8N CVE Monitor](./eigene-projekte/n8n-cve-monitor.md)
 
 ---
 
@@ -43,7 +44,7 @@ Vorbereitung auf Praktikum bei BerlinCert (IT-Security/Pentesting) und langfrist
 
 ## Tools & Technologien
 
-`Kali Linux` `Nobara Linux` `Docker` `N8N` `Ollama` `Hailo-10H` `Metasploit` `Burp Suite` `DVWA` `Tailscale` `Samba` `TryHackMe` `Pwnagotchi` `Bettercap` `Tor`
+`Kali Linux` `Nobara Linux` `Docker` `N8N` `Hailo-10H` `Metasploit` `Burp Suite` `DVWA` `Tailscale` `Samba` `TryHackMe` `Pwnagotchi` `Bettercap` `Tor`
 
 ---
 
