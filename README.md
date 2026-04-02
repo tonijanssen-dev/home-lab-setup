@@ -32,7 +32,8 @@ Dokumentation meines persönlichen Home Labs — aufgebaut für Ethical Hacking,
 - [DVWA Übungen](./dvwa/)
   - [Brute Force — Burp Suite Intruder](./dvwa/dvwa-brute-force.md)
 - [Eigene Projekte](./eigene-projekte/)
-  - [N8N CVE Monitor](./eigene-projekte/n8n-cve-monitor.md)
+  - [N8N CVE Monitor](./eigene-projekte/cve-monitor/n8n-cve-monitor.md)
+  - [Mentat Network Monitor](./eigene-projekte/network-monitor/n8n-network-monitor.md)
 
 ---
 
@@ -44,7 +45,7 @@ Vorbereitung auf Praktikum bei BerlinCert (IT-Security/Pentesting) und langfrist
 
 ## Tools & Technologien
 
-`Kali Linux` `Nobara Linux` `Docker` `N8N` `Hailo-10H` `Metasploit` `Burp Suite` `DVWA` `Tailscale` `Samba` `TryHackMe` `Pwnagotchi` `Bettercap` `Tor`
+`Kali Linux` `Nobara Linux` `Docker` `N8N` `Hailo-10H` `Metasploit` `Burp Suite` `DVWA` `Tailscale` `Samba` `TryHackMe` `Pwnagotchi` `Bettercap` `Tor` `nmap` `arp-scan` `Ollama`
 
 ---
 
