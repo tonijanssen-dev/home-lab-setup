@@ -12,7 +12,7 @@
 | RAM | 32GB DDR4-3200 (Corsair 2x16GB, XMP aktiv) |
 | GPU | ZOTAC RTX 3070 8GB GDDR6 |
 | Mainboard | Medion B660M Gaming |
-| IP | 192.168.0.2 (fest via Router DHCP-Reservierung) |
+| IP | 192.168.0.x (fest via Router DHCP-Reservierung) |
 
 ---
 
