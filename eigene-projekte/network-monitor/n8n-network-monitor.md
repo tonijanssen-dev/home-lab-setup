@@ -40,7 +40,7 @@ Automatischer Heimnetzwerk-Monitor der alle 8h einen nmap + arp-scan durchführt
 WHITELIST="/etc/network-monitor/whitelist.json"
 WEBHOOK="http://localhost:5678/webhook/network-scan"
 
-NMAP_OUT=$(sudo /usr/bin/nmap -sn 192.168.0.0/24 2>/dev/null)
+NMAP_OUT=$(sudo /usr/bin/nmap -sn 192.168.x.0/24 2>/dev/null)
 ARP_OUT=$(sudo /usr/sbin/arp-scan --localnet --retry=3 2>/dev/null)
 
 DEVICES=$(echo "$ARP_OUT" | grep -E "^192\." | awk '{print $1, $2}')
@@ -85,13 +85,13 @@ curl -s -X POST "$WEBHOOK" \
 
 ```json
 [
-  {"ip": "192.168.0.1", "mac": "...", "name": "Router"},
-  {"ip": "192.168.0.2", "mac": "...", "name": "ToniPC"},
-  {"ip": "192.168.0.3", "mac": "...", "name": "Kali-LAN"},
-  {"ip": "192.168.0.4", "mac": "...", "name": "mentat-ai-node"},
-  {"ip": "192.168.0.80", "mac": "...", "name": "Kali-WLAN"},
-  {"ip": "192.168.0.156", "mac": "...", "name": "iPhone-Toni"},
-  {"ip": "192.168.0.174", "mac": "...", "name": "Apple-TV"}
+  {"ip": "192.168.x.1", "mac": "xx:xx:xx:xx:xx:xx", "name": "Router"},
+  {"ip": "192.168.x.2", "mac": "xx:xx:xx:xx:xx:xx", "name": "Desktop-PC"},
+  {"ip": "192.168.x.3", "mac": "xx:xx:xx:xx:xx:xx", "name": "Kali-LAN"},
+  {"ip": "192.168.x.4", "mac": "xx:xx:xx:xx:xx:xx", "name": "mentat-ai-node"},
+  {"ip": "192.168.x.5", "mac": "xx:xx:xx:xx:xx:xx", "name": "Kali-WLAN"},
+  {"ip": "192.168.x.6", "mac": "xx:xx:xx:xx:xx:xx", "name": "Smartphone"},
+  {"ip": "192.168.x.7", "mac": "xx:xx:xx:xx:xx:xx", "name": "Smart-TV"}
 ]
 ```
 
