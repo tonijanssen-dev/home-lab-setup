@@ -6,10 +6,10 @@ Automatischer Heimnetzwerk-Monitor der alle 8h einen nmap + arp-scan durchführt
 
 ## Workflow
 
-![N8N Workflow](Bildschirmfoto_20260403_010235.png)
+![N8N Workflow](n8n-network-monitor-workflow.png)
 
 **Pipeline:**
-`Cron Job (Pi)` → `scan.sh` → `Webhook (N8N)` → `Code in JavaScript (Whitelist-Check)` → `HTTP Request (Ollama)` → `Send a text message (Telegram)`
+`Cron Job (Pi)` → `scan.sh` → `Webhook (N8N)` → `Code in JavaScript (Whitelist-Check + Nachricht)` → `IF` → `HTTP Request (Ollama)` → `Send a text message (Telegram)`
 
 ---
 
@@ -101,39 +101,59 @@ curl -s -X POST "$WEBHOOK" \
 
 ---
 
-## Code in JavaScript — Whitelist-Check
+## Code in JavaScript — Whitelist-Check & Nachricht
+
+Bei bekannten Geräten wird die Telegram-Nachricht direkt gebaut. Bei unbekannten Geräten werden IP und MAC für Ollama aufbereitet.
 
 ```javascript
 const body = $input.first().json.body;
 const devices = body.devices || [];
 const timestamp = body.timestamp;
 
+const date = new Date(timestamp);
+const formatted = date.toLocaleString('de-DE', {
+  timeZone: 'Europe/Berlin',
+  day: '2-digit', month: '2-digit', year: 'numeric',
+  hour: '2-digit', minute: '2-digit'
+});
+
 const known = devices.filter(d => d.known === true);
 const unknown = devices.filter(d => d.known === false);
 
-const knownList = known.map(d => `[OK] ${d.name} - ${d.ip} (${d.mac})`).join('\n');
-const unknownList = unknown.length > 0
-  ? unknown.map(d => `[UNBEKANNT] ${d.ip} (${d.mac})`).join('\n')
-  : null;
+if (unknown.length === 0) {
+  const deviceList = known.map(d => `✓ ${d.name}`).join('\n');
+  return [{
+    json: {
+      has_unknown: false,
+      message: `🟢 Netzwerk-Scan — ${formatted}\n\n${known.length} Geraete online, alle bekannt.\n\n${deviceList}`
+    }
+  }];
+}
 
-const report = unknownList
-  ? `UNBEKANNTE GERAETE GEFUNDEN:\n${unknownList}\n\nBekannte Geraete:\n${knownList}`
-  : `Alle Geraete bekannt:\n${knownList}`;
+const unknownList = unknown.map(d => `IP: ${d.ip}\nMAC: ${d.mac}`).join('\n\n');
 
 return [{
   json: {
-    report,
+    has_unknown: true,
     unknown_count: unknown.length,
     known_count: known.length,
-    timestamp,
-    has_unknown: unknown.length > 0
+    timestamp: formatted,
+    unknown_details: unknownList
   }
 }];
 ```
 
 ---
 
-## Ollama Prompt (HTTP Request Body)
+## IF — Bekannt oder Unbekannt
+
+- `{{ $json.has_unknown }}` is equal to `true` (Convert types: an)
+- **true** → Ollama bewertet das unbekannte Gerät → Telegram
+- **false** → direkt Telegram mit fertigem Bericht (kein LLM-Call)
+
+---
+
+## Ollama Prompt — nur bei unbekannten Geräten
 
 ```json
 {
@@ -141,11 +161,11 @@ return [{
   "messages": [
     {
       "role": "system",
-      "content": "Du bist ein Netzwerk-Monitor. Antworte IMMER auf Deutsch. Nur Fakten, keine Erfindungen."
+      "content": "Du bist ein Netzwerk-Sicherheitsassistent. Antworte IMMER auf Deutsch. Maximal 3 Saetze. Nur Fakten."
     },
     {
       "role": "user",
-      "content": "Netzwerk-Scan abgeschlossen. Gib eine kurze sachliche Zusammenfassung in 2-3 Saetzen. Keine Vermutungen. Nur was du weisst.\n\nScan-Zeit: {{ $json.timestamp }}\nBekannte Geraete: {{ $json.known_count }}\nUnbekannte Geraete: {{ $json.unknown_count }}\nStatus: {{ $json.has_unknown == true ? 'WARNUNG - Unbekannte Geraete gefunden' : 'Alles in Ordnung' }}"
+      "content": "Ein unbekanntes Geraet wurde in meinem Heimnetz gefunden. Bewerte kurz ob es gefaehrlich sein koennte basierend auf der MAC-Adresse.\n\n{{ $json.unknown_details }}\nGefunden: {{ $json.timestamp }}"
     }
   ],
   "stream": false
@@ -155,7 +175,7 @@ return [{
 ---
 
 ## Telegram
-- Text: `{{ $json.message?.content }}`
+- Text: `{{ $json.summary ?? $json.message ?? $json.description }}`
 
 ---
 
@@ -173,12 +193,18 @@ Läuft täglich um **00:00, 08:00, 16:00 Uhr**.
 
 | Situation | Verhalten |
 |-----------|-----------|
-| Alle Geräte bekannt | Kurzer OK-Bericht via Telegram |
-| Unbekanntes Gerät | Warnung via Telegram |
+| Alle Geräte bekannt | Direkte Telegram Nachricht mit Geräteliste — kein LLM |
+| Unbekanntes Gerät | IP + MAC sichtbar, Ollama bewertet → Telegram Warnung |
 
 ---
 
 ## Changelog
+
+### v1.1 — 03.04.2026
+- Ollama nur bei unbekannten Geräten aufgerufen
+- Bei bekannten Geräten direkte Telegram Nachricht mit Geräteliste und Uhrzeit
+- IP und MAC des unbekannten Geräts direkt in Telegram sichtbar
+- Keine Halluzination mehr bei normalem Scan
 
 ### v1.0 — 03.04.2026
 - Initialer Aufbau
