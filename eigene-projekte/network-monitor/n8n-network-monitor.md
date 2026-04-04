@@ -8,6 +8,8 @@ Automatischer Heimnetzwerk-Monitor der alle 8h einen nmap + arp-scan durchführt
 
 ![N8N Workflow](Bildschirmfoto_20260403_010235.png)
 
+![N8N Workflow](n8n-network-monitor-workflow.png)
+
 **Pipeline:**
 `Cron Job (Pi)` → `scan.sh` → `Webhook (N8N)` → `Code in JavaScript (Whitelist-Check + Nachricht)` → `IF` → `HTTP Request (Ollama)` → `Send a text message (Telegram)`
 
