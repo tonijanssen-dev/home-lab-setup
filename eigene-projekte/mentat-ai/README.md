@@ -280,7 +280,6 @@ mempalace --palace ~/mentat-palace search "dein suchbegriff"
 ## Roadmap
 
 - [ ] Wöchentlicher Kontext-Refresh via N8N + Telegram
-- [ ] Kali-Pi Wake-on-LAN
 - [ ] Tool Calling: Mentat sucht selbst im Palace bei unbekannten Fragen
 - [ ] Whisper Wakeword ("Hey Mentat")
 
