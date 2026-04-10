@@ -1,5 +1,17 @@
 # 🏠 Home Lab Setup
 
+![Status](https://img.shields.io/badge/status-active-brightgreen)
+![Kali Linux](https://img.shields.io/badge/OS-Kali%20Linux-557C94?logo=kalilinux)
+![Nobara](https://img.shields.io/badge/OS-Nobara%20KDE%2043-blue?logo=fedora)
+![Docker](https://img.shields.io/badge/container-Docker-2496ED?logo=docker)
+![N8N](https://img.shields.io/badge/automation-N8N-EA4B71)
+![Ollama](https://img.shields.io/badge/AI-Ollama-orange)
+![Tailscale](https://img.shields.io/badge/VPN-Tailscale-242424?logo=tailscale)
+![Burp Suite](https://img.shields.io/badge/pentest-Burp%20Suite-FF6633)
+![TryHackMe](https://img.shields.io/badge/learning-TryHackMe-212C42?logo=tryhackme)
+![RPi](https://img.shields.io/badge/hardware-Raspberry%20Pi%205-C51A4A?logo=raspberrypi)
+![NVIDIA](https://img.shields.io/badge/GPU-RTX%203070-76B900?logo=nvidia)
+
 Dokumentation meines persönlichen Home Labs — aufgebaut für Ethical Hacking, Pentesting, FISI-Ausbildung und allgemeine IT-Praxis.
 
 ---

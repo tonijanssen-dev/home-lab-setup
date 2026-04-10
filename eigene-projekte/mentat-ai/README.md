@@ -1,5 +1,16 @@
 # 🧠 Mentat — Persönlicher Offline-KI-Assistent
 
+![Status](https://img.shields.io/badge/status-active-brightgreen)
+![Python](https://img.shields.io/badge/python-3.x-blue?logo=python)
+![Ollama](https://img.shields.io/badge/model-llama3.1:8b-orange)
+![CUDA](https://img.shields.io/badge/CUDA-12%2B-76B900?logo=nvidia)
+![Docker](https://img.shields.io/badge/docker-SearXNG-2496ED?logo=docker)
+![MemPalace](https://img.shields.io/badge/memory-MemPalace-purple)
+![Whisper](https://img.shields.io/badge/STT-faster--whisper-yellow)
+![Piper](https://img.shields.io/badge/TTS-Piper-lightgrey)
+![RPi](https://img.shields.io/badge/hardware-RPi5%20%2B%20Hailo--10H-C51A4A?logo=raspberrypi)
+![Privacy](https://img.shields.io/badge/privacy-100%25%20lokal-darkgreen)
+
 > *"Not a tool. A partner."*
 
 Mentat ist ein vollständig lokal laufender, persönlicher KI-Assistent — aufgebaut auf eigener Hardware, ohne Cloud, ohne Datenweitergabe. Er läuft auf einem Raspberry Pi 5 mit Hailo-NPU als "Körper" und nutzt einen leistungsstarken Tower-PC als "Gehirn". Er hat ein persistentes Gedächtnis, kann das Web durchsuchen, hört zu und redet zurück.
