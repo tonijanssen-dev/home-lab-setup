@@ -8,10 +8,10 @@ Dokumentation meines persönlichen Home Labs — aufgebaut für Ethical Hacking,
 
 | Gerät | OS | Rolle |
 |---|---|---|
-| Tower (RTX 3070, 32GB RAM) | Nobara KDE 43 (Linux) | Gaming, Alltag |
+| Tower (RTX 3070, 32GB RAM) | Nobara KDE 43 (Linux) | Gaming, Alltag, KI-Gehirn |
 | Raspberry Pi 5 (8GB RAM) | Kali Linux | Hacking Station, Server |
-| mentat-ai-node (RPi 5 + Hailo-10H) | Raspberry Pi OS Lite | Lokaler AI-Node |
-| Huawei Laptop | Windows 11 + Ubuntu 24 | Schule, FISI |
+| mentat-ai-node (RPi 5 + Hailo-10H) | Raspberry Pi OS Lite | Lokaler AI-Node, Mentat-Körper |
+| Huawei Laptop | Windows 11 + Kali Live USB | Schule, FISI, Pentesting |
 
 ---
 
@@ -34,6 +34,7 @@ Dokumentation meines persönlichen Home Labs — aufgebaut für Ethical Hacking,
 - [Eigene Projekte](./eigene-projekte/)
   - [N8N CVE Monitor](./eigene-projekte/cve-monitor/n8n-cve-monitor.md)
   - [Mentat Network Monitor](./eigene-projekte/network-monitor/n8n-network-monitor.md)
+  - [Mentat — Persönlicher Offline-KI-Assistent](./eigene-projekte/mentat-ai/README.md)
 
 ---
 
@@ -45,7 +46,7 @@ Vorbereitung auf Praktikum bei BerlinCert (IT-Security/Pentesting) und langfrist
 
 ## Tools & Technologien
 
-`Kali Linux` `Nobara Linux` `Docker` `N8N` `Hailo-10H` `Metasploit` `Burp Suite` `DVWA` `Tailscale` `Samba` `TryHackMe` `Pwnagotchi` `Bettercap` `Tor` `nmap` `arp-scan` `Ollama`
+`Kali Linux` `Nobara Linux` `Docker` `N8N` `Hailo-10H` `Metasploit` `Burp Suite` `DVWA` `Tailscale` `Samba` `TryHackMe` `Pwnagotchi` `Bettercap` `Tor` `nmap` `arp-scan` `Ollama` `llama3.1:8b` `MemPalace` `SearXNG` `Whisper` `Piper TTS`
 
 ---
 
