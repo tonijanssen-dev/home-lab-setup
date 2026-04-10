@@ -1,4 +1,4 @@
-# 🧠 Mentat — Persönlicher Offline-KI-Assistent
+#  Mentat — Persönlicher Offline-KI-Assistent
 
 ![Status](https://img.shields.io/badge/status-active-brightgreen)
 ![Python](https://img.shields.io/badge/python-3.x-blue?logo=python)
