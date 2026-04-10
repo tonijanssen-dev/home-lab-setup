@@ -281,7 +281,6 @@ mempalace --palace ~/mentat-palace search "dein suchbegriff"
 
 - [ ] Wöchentlicher Kontext-Refresh via N8N + Telegram
 - [ ] Kali-Pi Wake-on-LAN
-- [ ] Tower automatisch nach Session herunterfahren
 - [ ] Tool Calling: Mentat sucht selbst im Palace bei unbekannten Fragen
 - [ ] Whisper Wakeword ("Hey Mentat")
 
