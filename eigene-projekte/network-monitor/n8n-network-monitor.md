@@ -1,5 +1,14 @@
 # Mentat Network Monitor
 
+![Status](https://img.shields.io/badge/status-active-brightgreen)
+![N8N](https://img.shields.io/badge/automation-N8N-EA4B71)
+![Ollama](https://img.shields.io/badge/model-llama3.2:3b-orange)
+![nmap](https://img.shields.io/badge/scan-nmap-4B0082)
+![arp-scan](https://img.shields.io/badge/scan-arp--scan-4B0082)
+![Telegram](https://img.shields.io/badge/notify-Telegram-26A5E4?logo=telegram)
+![RPi](https://img.shields.io/badge/hardware-RPi5%20%2B%20Hailo--10H-C51A4A?logo=raspberrypi)
+![Docker](https://img.shields.io/badge/container-Docker-2496ED?logo=docker)
+
 Automatischer Heimnetzwerk-Monitor der alle 8h einen nmap + arp-scan durchführt, Geräte gegen eine Whitelist prüft und einen Bericht via Telegram meldet.
 
 ---
