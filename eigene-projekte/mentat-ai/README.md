@@ -1,4 +1,4 @@
-# 🧠 Mentat — Persönlicher Offline-KI-Assistent
+#  Mentat — Persönlicher Offline-KI-Assistent
 
 ![Status](https://img.shields.io/badge/status-active-brightgreen)
 ![Python](https://img.shields.io/badge/python-3.x-blue?logo=python)
@@ -13,9 +13,7 @@
 
 > *"Not a tool. A partner."*
 
-Mentat ist ein vollständig lokal laufender, persönlicher KI-Assistent — aufgebaut auf eigener Hardware, ohne Cloud, ohne Datenweitergabe. Er läuft auf einem Raspberry Pi 5 mit Hailo-NPU als "Körper" und nutzt einen leistungsstarken Tower-PC als "Gehirn". Er hat ein persistentes Gedächtnis, kann das Web durchsuchen, hört zu und redet zurück.
-
-![Mentat Voice Chat in Aktion](Bildschirmfoto_20260410_202545.png)
+Mentat ist ein vollständig lokal laufender, persönlicher KI-Assistent — aufgebaut auf eigener Hardware, ohne Cloud, ohne Datenweitergabe. Er läuft auf einem Raspberry Pi 5 mit Hailo-NPU als "Körper" und nutzt einen leistungsstarken Tower-PC als "Gehirn". Er hat ein persistentes Gedächtnis, kann das Web durchsuchen, sein eigenes Gedächtnis durchsuchen, hört zu und redet zurück.
 
 ---
 
@@ -31,40 +29,32 @@ Weil ich eine KI wollte, der ich vertrauen kann. Kein Modell das meine Daten an 
 mentat-ai-node (RPi5 8GB + Hailo-10H NPU)
 ├── MemPalace (ChromaDB + SQLite)   → persistentes Gedächtnis
 ├── SearXNG (Docker, Port 8888)     → private Websuche
+├── hailo-ollama (Port 8000)        → llama3.2:3b für N8N Workflows
+├── N8N (Docker, Port 5678)         → Automation (CVE Monitor, Network Monitor)
 ├── mentat.py                       → Text-Chat Interface
 ├── mentat-chats/                   → gespeicherte Gespräche
+├── mentat-knowledge/               → Knowledge Base Dateien
 └── ~/.mempalace/identity.txt       → Mentats Seele
 
-Tower (Nobara KDE, RTX 3070)
+Tower (Nobara KDE 43, RTX 3070)
 ├── Ollama (Port 11434)             → llama3.1:8b
 ├── faster-whisper (CUDA)           → Speech-to-Text
 ├── Piper TTS                       → Text-to-Speech
+├── openwakeword                    → Hey Mentat Wakeword (in Entwicklung)
 └── mentat_voice.py                 → Voice-Chat Interface
 ```
 
 Mentat hat zwei Interfaces:
 - **`mentat`** — Textbasierter Chat, läuft direkt auf dem mentat-ai-node
-- **`mentat-voice`** — Sprach-Chat, läuft auf dem Tower (Mikrofon + Lautsprecher erforderlich)
-
----
-
-## Komponenten
-
-| Komponente | Beschreibung | Läuft auf |
-|---|---|---|
-| llama3.1:8b | Sprachmodell (Gehirn) | Tower via Ollama |
-| MemPalace | Persistentes Gedächtnis (ChromaDB) | mentat-ai-node |
-| SearXNG | Private Metasuchmaschine | mentat-ai-node (Docker) |
-| faster-whisper | Speech-to-Text (CUDA-beschleunigt) | Tower |
-| Piper TTS | Text-to-Speech | Tower |
-| Wake-on-LAN | Tower automatisch starten | mentat-ai-node → Tower |
+- **`mentat-voice`** — Sprach-Chat, läuft auf dem Tower (Mikrofon + Lautsprecher)
 
 ---
 
 ## Features
 
 - **Persistentes Gedächtnis** — Jedes Gespräch wird ins Palace gemined und bleibt erhalten
-- **Websuche** — Mentat sucht selbstständig via SearXNG wenn er etwas nicht weiß, und speichert das Ergebnis
+- **Palace Tool Calling** — Mentat sucht selbstständig im eigenen Gedächtnis via `[PALACE: query]`
+- **Websuche** — Mentat sucht via SearXNG wenn nötig via `[SEARCH: query]`, speichert Ergebnis ins Palace
 - **Vollständig offline** — Kein einziger Request geht nach außen (außer SearXNG Suchen)
 - **Sprachein- und -ausgabe** — Whisper STT + Piper TTS, läuft lokal auf der GPU
 - **Wake-on-LAN** — `mentat` startet den Tower automatisch wenn er schläft
@@ -72,129 +62,134 @@ Mentat hat zwei Interfaces:
 
 ---
 
-## Setup
+## Tool Calling
 
-### Voraussetzungen
+Mentat kann zwei externe Tools selbstständig aufrufen — ohne dass ich ihn dazu auffordern muss:
 
-**mentat-ai-node:**
-- Raspberry Pi 5 (8GB RAM empfohlen)
-- Raspberry Pi OS Lite 64-bit
-- Docker installiert
-- Python 3.x mit pip
-- Tailscale (optional, für Remote-Zugriff)
+| Tag | Funktion |
+|-----|----------|
+| `[PALACE: suchbegriff]` | Sucht im MemPalace nach Erinnerungen, Wissen, vergangenen Gesprächen |
+| `[SEARCH: suchbegriff]` | Sucht im Web via SearXNG, mined Ergebnis automatisch ins Palace |
 
-**Tower:**
-- Linux (getestet mit Nobara KDE 43)
-- NVIDIA GPU mit CUDA 12+
-- Ollama installiert
-- Python 3.x mit pip
+Priorität: Mentat sucht immer erst im Palace, dann im Web. Definiert in Mentats Seele via RULE 15-17.
 
 ---
 
-### Installation
+## Knowledge Base Workflow
 
-#### 1. MemPalace installieren (mentat-ai-node)
+Mentat wird mit fokussiertem Wissen aus thematisch getrennten `.md` Dateien gefüttert. Jede Datei = ein Thema = bessere Chunks = bessere Suchergebnisse.
+
+### Workflow — Neues Wissen hinzufügen
+
+```bash
+# 1. Neue .md Datei erstellen oder von außen auf den Node kopieren
+scp ~/Downloads/neues_thema.md pi@<NODE_IP>:~/mentat-knowledge/
+
+# 2. Palace init im Knowledge-Ordner (einmalig oder nach Reset)
+/home/pi/.local/bin/mempalace init ~/mentat-knowledge/
+
+# 3. Minen (nur neue Dateien werden verarbeitet)
+/home/pi/.local/bin/mempalace --palace ~/mentat-palace mine ~/mentat-knowledge/ --mode projects
+
+# 4. Suche testen
+/home/pi/.local/bin/mempalace --palace ~/mentat-palace search "suchbegriff"
+```
+
+### Palace komplett resetten
+
+```bash
+rm -rf ~/mentat-palace ~/mentat-chats/*
+mkdir ~/mentat-palace
+/home/pi/.local/bin/mempalace init ~/mentat-palace
+# Dann Knowledge Base neu minen (siehe oben)
+```
+
+### Aktuelle Knowledge Base (17 Dateien)
+
+| Datei | Inhalt |
+|-------|--------|
+| 01_owasp_web_2025.md | OWASP Top 10 Web 2025 |
+| 02_owasp_api_2023.md | OWASP API Security Top 10 2023 |
+| 03_stgb_computerstrafrecht.md | §202a StGB, Hackerparagraph, Pentest-Recht |
+| 04_netzwerktechnik.md | OSI, TCP/IP, Firewall, SPI, NAT |
+| 05_linux_rechte.md | chmod, chown, SUID, Sticky Bit |
+| 06_sql_datenbanken.md | SQL, Normalisierung, SQL Injection |
+| 07_powershell.md | PowerShell Grundlagen, Cmdlets |
+| 08_java_oop.md | Java OOP, Vererbung, PCShop Projekt |
+| 09_docker.md | Docker Grundlagen, Befehle, Compose |
+| 10_windows_server_ad.md | Active Directory, AD Angriffe |
+| 11_pentesting_tools.md | nmap, Burp, SQLMap, Aircrack, Flipper |
+| 12_mentat_system.md | Mentat Architektur, Infrastruktur |
+| 13_wakeword_training.md | Hey Mentat Training, Fixes |
+| 14_n8n_cve_monitor.md | N8N CVE Monitor Dokumentation |
+| 15_n8n_network_monitor.md | N8N Network Monitor Dokumentation |
+| 16_dvwa_brute_force.md | DVWA Brute Force mit Burp Suite |
+| 17_mentat_readme.md | Mentat Projektübersicht |
+
+---
+
+## Setup
+
+### 1. MemPalace installieren (mentat-ai-node)
 
 ```bash
 pip install mempalace --break-system-packages
-mkdir ~/mentat-palace && mempalace init ~/mentat-palace
+mkdir ~/mentat-palace && /home/pi/.local/bin/mempalace init ~/mentat-palace
 ```
 
-#### 2. SearXNG starten (mentat-ai-node)
+### 2. SearXNG starten (mentat-ai-node)
 
 ```bash
-docker run -d \
-  --name searxng \
-  --restart always \
+docker run -d --name searxng --restart always \
   -p 0.0.0.0:8888:8080 \
   -e BASE_URL=http://<NODE_IP>:8888 \
-  -e INSTANCE_NAME=mentat-search \
   searxng/searxng:latest
-```
 
-JSON-Format aktivieren:
-```bash
 docker exec searxng sh -c "printf '\nsearch:\n  formats:\n    - html\n    - json\n' >> /etc/searxng/settings.yml"
 docker restart searxng
 ```
 
-#### 3. Ollama + Modell installieren (Tower)
+### 3. Ollama installieren (Tower)
 
 ```bash
 curl -fsSL https://ollama.com/install.sh | sh
 ollama pull llama3.1:8b
 ```
 
-Ollama im Netzwerk erreichbar machen:
-```bash
-# /etc/systemd/system/ollama.service.d/override.conf
+Ollama im Netzwerk erreichbar machen (`/etc/systemd/system/ollama.service.d/override.conf`):
+```ini
 [Service]
 Environment="OLLAMA_HOST=0.0.0.0:11434"
 ```
 
-```bash
-sudo systemctl daemon-reload && sudo systemctl restart ollama
-```
-
-#### 4. Faster-Whisper + Piper installieren (Tower)
+### 4. Faster-Whisper + Piper (Tower)
 
 ```bash
-sudo dnf install -y portaudio-devel python3-devel pulseaudio-libs-devel
-pip install faster-whisper sounddevice soundfile numpy --break-system-packages
+pip install faster-whisper sounddevice soundfile openwakeword --break-system-packages
 pip install nvidia-cublas-cu12 "nvidia-cudnn-cu12==9.*" --break-system-packages
-```
 
-LD_LIBRARY_PATH dauerhaft setzen:
-```bash
-echo 'export LD_LIBRARY_PATH=/home/<USER>/.local/lib/python3.x/site-packages/nvidia/cublas/lib:/home/<USER>/.local/lib/python3.x/site-packages/nvidia/cudnn/lib' >> ~/.bashrc
-```
-
-Piper herunterladen:
-```bash
+# Piper
 mkdir -p ~/piper && cd ~/piper
 wget https://github.com/rhasspy/piper/releases/download/2023.11.14-2/piper_linux_x86_64.tar.gz
 tar -xzf piper_linux_x86_64.tar.gz
-
-# Stimme herunterladen
 wget https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/en/en_GB/northern_english_male/medium/en_GB-northern_english_male-medium.onnx
 wget https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/en/en_GB/northern_english_male/medium/en_GB-northern_english_male-medium.onnx.json
 ```
 
-#### 5. SSH-Key einrichten (Tower → mentat-ai-node)
+### 5. SSH-Key einrichten (Tower → mentat-ai-node)
 
 ```bash
-ssh-keygen -t ed25519 -C "mentat-voice" -f ~/.ssh/mentat_node -N ""
+ssh-keygen -t ed25519 -f ~/.ssh/mentat_node -N ""
 ssh-copy-id -i ~/.ssh/mentat_node.pub pi@<NODE_IP>
 ```
 
-#### 6. Wake-on-LAN einrichten (Tower)
-
-BIOS: ErP State = Disabled, Wake on LAN = Enabled
+### 6. Aliase einrichten
 
 ```bash
-# /etc/systemd/system/wol.service
-[Unit]
-Description=Wake-on-LAN
-[Service]
-ExecStart=/sbin/ethtool -s <NETZWERK_INTERFACE> wol g
-[Install]
-WantedBy=multi-user.target
-```
-
-```bash
-sudo systemctl enable --now wol.service
-```
-
-#### 7. Scripts und Aliase einrichten
-
-```bash
-# mentat.py → auf mentat-ai-node nach ~/mentat.py kopieren
-# mentat_voice.py → auf Tower nach ~/mentat_voice.py kopieren
-
-# ~/.bashrc auf mentat-ai-node
+# auf mentat-ai-node
 echo "alias mentat='python3 ~/mentat.py'" >> ~/.bashrc
 
-# ~/.bashrc auf Tower
+# auf Tower
 echo "alias mentat-voice='python3 ~/mentat_voice.py'" >> ~/.bashrc
 ```
 
@@ -202,447 +197,57 @@ echo "alias mentat-voice='python3 ~/mentat_voice.py'" >> ~/.bashrc
 
 ## Konfiguration
 
-Wichtige Variablen in `mentat.py` und `mentat_voice.py` anpassen:
+Variablen in `mentat.py` und `mentat_voice.py` anpassen:
 
 ```python
-TOWER_IP      = "<TOWER_IP>"        # IP des Tower-PCs
-TOWER_MAC     = "<TOWER_MAC>"       # MAC für Wake-on-LAN
-NODE_IP       = "pi@<NODE_IP>"      # IP des mentat-ai-node
-OLLAMA_URL    = "http://<TOWER_IP>:11434/api/chat"
-SEARXNG_URL   = "http://<NODE_IP>:8888/search"
+TOWER_IP           = "<TOWER_IP>"
+TOWER_MAC          = "<TOWER_MAC>"        # für Wake-on-LAN
+NODE_IP            = "pi@<NODE_IP>"
+OLLAMA_URL         = "http://<TOWER_IP>:11434/api/chat"
+SEARXNG_URL        = "http://<NODE_IP>:8888/search"
+MIC_DEVICE         = 13                   # prüfen: python3 -c "import sounddevice; print(sounddevice.query_devices())"
+MIC_SAMPLERATE     = 48000
+WAKEWORD_MODEL     = "/path/to/hey_mentat.onnx"
+WAKEWORD_THRESHOLD = 0.5
 ```
 
 ---
 
 ## Die Seele
 
-Mentats Persönlichkeit und Wissen über seinen Besitzer liegt in:
+Mentats Persönlichkeit liegt in `~/.mempalace/identity.txt` auf dem mentat-ai-node. Diese Datei wird bei jedem Start als System-Prompt geladen.
 
-```
-~/.mempalace/identity.txt   (auf mentat-ai-node)
-```
+Enthält: Wer Mentat ist, wen er dient, wie er sich verhält, und welche Tools er nutzen darf (RULE 15-17 für PALACE/SEARCH Tool Calling).
 
-Diese Datei wird bei jedem Start als System-Prompt geladen. Sie definiert wer Mentat ist, wen er dient und wie er sich verhält.
-
-> ⚠️ Keine echten IPs, Passwörter oder sensiblen Daten in die Seele schreiben — sie liegt auf dem Node und wird per SSH übertragen.
+> ⚠️ Keine echten IPs, Passwörter oder sensiblen Daten in die Seele schreiben.
 
 ---
 
-## Nutzung
+## Wakeword — Hey Mentat
 
-### Text-Chat (auf mentat-ai-node)
+Custom Wakeword via [openwakeword-trainer](https://github.com/lgpearson1771/openwakeword-trainer).
+
+**Status:** Modell vorhanden (`~/openwakeword-trainer/export/hey_mentat.onnx`), Score bis 0.74 aber instabil.
+**Plan:** 20-50 echte Stimm-Samples aufnehmen und nachtrainieren → deutlich stabiler.
 
 ```bash
-mentat
-```
-
-Schreibe eine Nachricht, drücke Enter. `exit` beendet das Gespräch und mined automatisch ins Palace.
-
-### Voice-Chat (auf Tower)
-
-```bash
-mentat-voice
-```
-
-Sprich ins Mikrofon, drücke Enter wenn fertig. Mentat antwortet mit Stimme. `Strg+C` beendet das Gespräch.
-
-### Websuche
-
-Mentat sucht automatisch wenn er etwas nicht weiß — er gibt `[SEARCH: query]` aus, das Script sucht via SearXNG und injiziert die Ergebnisse. Das Suchergebnis wird anschließend ins Palace gemined.
-
----
-
-## Palace verwalten
-
-```bash
-# Status
-mempalace --palace ~/mentat-palace status
-
-# Manuell minen
-mempalace --palace ~/mentat-palace mine ~/mentat-chats --mode convos
-
-# Suchen
-mempalace --palace ~/mentat-palace search "dein suchbegriff"
-```
-
----
-
-## Sicherheitshinweise
-
-- Keine echten IPs, MACs oder Zugangsdaten im Repository
-- SearXNG läuft im eigenen Docker-Netzwerk
-- Ollama ist nur im LAN erreichbar, nicht öffentlich
-- SSH-Kommunikation Tower ↔ Node läuft über Key-Auth
-- MemPalace speichert lokal — keine Cloud-Anbindung
-
----
-
-## Scripts
-
-### mentat.py — Text-Chat (mentat-ai-node)
-
-```python
-import subprocess, requests, os, time
-from datetime import datetime
-
-# ── Config ── Anpassen auf eigene Umgebung ───────────────────────────────────
-PALACE        = "/home/pi/mentat-palace"
-CHATS_DIR     = "/home/pi/mentat-chats"
-OLLAMA_URL    = "http://<TOWER_IP>:11434/api/chat"
-SEARXNG_URL   = "http://localhost:8888/search"
-MODEL         = "llama3.1:8b"
-TOWER_MAC     = "<TOWER_MAC>"
-TOWER_IP      = "<TOWER_IP>"
-MEMPALACE_BIN = "/home/pi/.local/bin/mempalace"
-
-def wake_up_tower():
-    try:
-        requests.get(f"http://{TOWER_IP}:11434", timeout=3)
-        return True
-    except:
-        print("[Tower schläft — sende Wake-on-LAN...]")
-        subprocess.run(["wakeonlan", TOWER_MAC], capture_output=True)
-        print("[Warte auf Tower...]")
-        for _ in range(30):
-            time.sleep(5)
-            try:
-                requests.get(f"http://{TOWER_IP}:11434", timeout=3)
-                print("[Tower online ✅]")
-                return True
-            except:
-                print(".", end="", flush=True)
-        print("\n[Tower nicht erreichbar.]")
-        return False
-
-def wake_up():
-    result = subprocess.run(
-        [MEMPALACE_BIN, "--palace", PALACE, "wake-up"],
-        capture_output=True, text=True
-    )
-    lines = result.stdout.strip().split('\n')
-    return '\n'.join(l for l in lines if not l.startswith('Wake-up')
-                     and not l.startswith('===') and not l.startswith('##'))
-
-def search_web(query):
-    try:
-        r = requests.get(SEARXNG_URL, params={"q": query, "format": "json"}, timeout=10)
-        results = r.json().get("results", [])[:3]
-        if not results:
-            return "No results found."
-        return "\n".join(f"- {x.get('title','')}: {x.get('content','')[:200]}" for x in results)
-    except Exception as e:
-        return f"Search failed: {e}"
-
-def clean_search_tags(text):
-    import re
-    return re.sub(r'\[SEARCH:[^\]]*\]', '', text).strip()
-
-def mine_to_palace(text, label="web_search"):
-    os.makedirs(CHATS_DIR, exist_ok=True)
-    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-    path = f"{CHATS_DIR}/search_{ts}_{label[:30]}.md"
-    with open(path, 'w') as f:
-        f.write(f"# Search: {label}\n\n{text}\n")
-    subprocess.run([MEMPALACE_BIN, "--palace", PALACE, "mine", path, "--mode", "convos"],
-                   capture_output=True)
-
-def save_conversation(messages):
-    os.makedirs(CHATS_DIR, exist_ok=True)
-    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-    path = f"{CHATS_DIR}/chat_{ts}.md"
-    with open(path, 'w') as f:
-        for m in messages:
-            if m['role'] == 'system':
-                continue
-            role = "Toni" if m['role'] == 'user' else "Mentat"
-            f.write(f"**{role}:** {m['content']}\n\n")
-    print(f"\n[Gespräch gespeichert: {path}]")
-    subprocess.run([MEMPALACE_BIN, "--palace", PALACE, "mine", path, "--mode", "convos"],
-                   capture_output=True)
-    print("[Palace aktualisiert ✅]")
-
-def ask(messages):
-    for attempt in range(3):
-        try:
-            r = requests.post(OLLAMA_URL, json={"model": MODEL, "messages": messages,
-                                                "stream": False}, timeout=120)
-            return r.json()["message"]["content"]
-        except Exception:
-            if attempt < 2:
-                print("[Verbindungsfehler, versuche erneut...]")
-            else:
-                return None
-
-def read_input():
-    print("Du: ", end="", flush=True)
-    lines = []
-    first = __import__('sys').stdin.readline()
-    if not first:
-        raise EOFError
-    lines.append(first.rstrip('\n'))
-    import select, sys
-    while select.select([sys.stdin], [], [], 0.15)[0]:
-        line = sys.stdin.readline()
-        if not line:
-            break
-        lines.append(line.rstrip('\n'))
-    return '\n'.join(lines).strip()
-
-def chat():
-    print("Mentat lädt...")
-    if not wake_up_tower():
-        print("Tower nicht erreichbar. Abbruch.")
-        return
-    system_prompt = wake_up()
-    messages = [{"role": "system", "content": system_prompt}]
-    print("Mentat online. 'exit' zum Beenden.\n")
-    while True:
-        try:
-            user_input = read_input()
-        except (KeyboardInterrupt, EOFError):
-            print("\nBis dann.")
-            save_conversation(messages)
-            break
-        if user_input.lower() == "exit":
-            print("Bis dann.")
-            save_conversation(messages)
-            break
-        if not user_input:
-            continue
-        if "[SEARCH:" in user_input:
-            start = user_input.find("[SEARCH:") + 8
-            end = user_input.find("]", start)
-            query = user_input[start:end].strip()
-            print(f"[Suche: {query} — bitte warten...]")
-            results = search_web(query)
-            mine_to_palace(results, query.replace(" ", "_"))
-            messages.append({"role": "user",
-                             "content": f"{user_input}\n\n[Search results:\n{results}]"})
-        else:
-            messages.append({"role": "user", "content": user_input})
-        reply = ask(messages)
-        if reply is None:
-            messages.pop()
-            print("[Keine Antwort. Bitte nochmal eingeben.]\n")
-            continue
-        if "[SEARCH:" in reply:
-            start = reply.find("[SEARCH:") + 8
-            end = reply.find("]", start)
-            query = reply[start:end].strip()
-            print(f"[Mentat sucht: {query} — bitte warten...]")
-            results = search_web(query)
-            mine_to_palace(results, query.replace(" ", "_"))
-            messages.append({"role": "assistant", "content": reply})
-            messages.append({"role": "user",
-                             "content": f"[Search results for '{query}':\n{results}]"})
-            print("[Ergebnisse gefunden, Mentat antwortet...]")
-            reply = ask(messages)
-            if reply is None:
-                print("[Keine Antwort nach Suche.]\n")
-                continue
-            reply = clean_search_tags(reply)
-        messages.append({"role": "assistant", "content": reply})
-        print(f"\nMentat: {reply}\n")
-
-if __name__ == "__main__":
-    chat()
-```
-
----
-
-### mentat_voice.py — Voice-Chat (Tower)
-
-```python
-import subprocess, requests, os, time, tempfile
-import sounddevice as sd
-import soundfile as sf
-import numpy as np
-from faster_whisper import WhisperModel
-from datetime import datetime
-
-# ── Config ── Anpassen auf eigene Umgebung ───────────────────────────────────
-OLLAMA_URL     = "http://localhost:11434/api/chat"
-SEARXNG_URL    = "http://<NODE_IP>:8888/search"
-MODEL          = "llama3.1:8b"
-PIPER_BIN      = "/home/<USER>/piper/piper/piper"
-PIPER_MODEL    = "/home/<USER>/piper/en_GB-northern_english_male-medium.onnx"
-WHISPER_MODEL  = "small"
-MIC_DEVICE     = 13          # prüfen mit: python3 -c "import sounddevice as sd; print(sd.query_devices())"
-MIC_SAMPLERATE = 44100
-SSH_KEY        = "/home/<USER>/.ssh/mentat_node"
-NODE_IP        = "pi@<NODE_IP>"
-NODE_CHATS     = "/home/pi/mentat-chats"
-NODE_PALACE    = "/home/pi/mentat-palace"
-LOCAL_TMP      = "/tmp/mentat_chats"
-MEMPALACE_BIN  = "/home/pi/.local/bin/mempalace"
-
-print("[Whisper lädt...]")
-whisper = WhisperModel(WHISPER_MODEL, device="cuda", compute_type="float16")
-print("[Whisper bereit ✅]")
-
-def speak(text):
-    try:
-        proc = subprocess.Popen(
-            [PIPER_BIN, "--model", PIPER_MODEL, "--output-raw"],
-            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
-        raw, _ = proc.communicate(input=text.encode())
-        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
-            fname = f.name
-        sf.write(fname, np.frombuffer(raw, dtype=np.int16), 22050)
-        os.system(f"aplay -q {fname}")
-        os.unlink(fname)
-    except Exception as e:
-        print(f"[Piper Fehler: {e}]")
-
-def listen():
-    print("[Hört zu... Enter drücken wenn fertig]")
-    chunks = []
-    def callback(indata, frames, time_info, status):
-        chunks.append(indata.copy())
-    stream = sd.InputStream(samplerate=MIC_SAMPLERATE, channels=1,
-                            dtype="float32", device=MIC_DEVICE, callback=callback)
-    stream.start()
-    input()
-    stream.stop()
-    stream.close()
-    if not chunks:
-        return ""
-    audio = np.concatenate(chunks, axis=0)
-    with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
-        fname = f.name
-    sf.write(fname, audio, MIC_SAMPLERATE)
-    segments, _ = whisper.transcribe(fname, language="en")
-    os.unlink(fname)
-    text = " ".join([s.text for s in segments]).strip()
-    print(f"[Du sagtest: {text}]")
-    return text
-
-def ssh(cmd):
-    return subprocess.run(
-        ["ssh", "-i", SSH_KEY, "-o", "StrictHostKeyChecking=no", NODE_IP, cmd],
-        capture_output=True, text=True)
-
-def wake_up():
-    return ssh("cat ~/.mempalace/identity.txt").stdout.strip()
-
-def search_web(query):
-    try:
-        r = requests.get(SEARXNG_URL, params={"q": query, "format": "json"}, timeout=10)
-        results = r.json().get("results", [])[:3]
-        if not results:
-            return "No results found."
-        return "\n".join(f"- {x.get('title','')}: {x.get('content','')[:200]}" for x in results)
-    except Exception as e:
-        return f"Search failed: {e}"
-
-def clean_search_tags(text):
-    import re
-    return re.sub(r'\[SEARCH:[^\]]*\]', '', text).strip()
-
-def mine_to_palace(text, label="web_search"):
-    os.makedirs(LOCAL_TMP, exist_ok=True)
-    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-    local_path = f"{LOCAL_TMP}/search_{ts}_{label[:30]}.md"
-    node_path = f"{NODE_CHATS}/search_{ts}_{label[:30]}.md"
-    with open(local_path, "w") as f:
-        f.write(f"# Search: {label}\n\n{text}\n")
-    subprocess.run(["scp", "-i", SSH_KEY, local_path, f"{NODE_IP}:{node_path}"],
-                   capture_output=True)
-    ssh(f"{MEMPALACE_BIN} --palace {NODE_PALACE} mine {node_path} --mode convos")
-
-def save_conversation(messages):
-    os.makedirs(LOCAL_TMP, exist_ok=True)
-    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-    local_path = f"{LOCAL_TMP}/chat_{ts}.md"
-    node_path = f"{NODE_CHATS}/chat_{ts}.md"
-    with open(local_path, "w") as f:
-        for m in messages:
-            if m["role"] == "system":
-                continue
-            role = "Toni" if m["role"] == "user" else "Mentat"
-            f.write(f"**{role}:** {m['content']}\n\n")
-    print(f"\n[Gespräch gespeichert]")
-    subprocess.run(["scp", "-i", SSH_KEY, local_path, f"{NODE_IP}:{node_path}"],
-                   capture_output=True)
-    ssh(f"{MEMPALACE_BIN} --palace {NODE_PALACE} mine {node_path} --mode convos")
-    print("[Palace aktualisiert ✅]")
-
-def ask(messages):
-    for attempt in range(3):
-        try:
-            r = requests.post(OLLAMA_URL, json={"model": MODEL, "messages": messages,
-                                                "stream": False}, timeout=120)
-            return r.json()["message"]["content"]
-        except Exception:
-            if attempt < 2:
-                print("[Verbindungsfehler, versuche erneut...]")
-            else:
-                return None
-
-def chat():
-    print("[Mentat Voice lädt...]")
-    system_prompt = wake_up()
-    if not system_prompt:
-        print("[Seele nicht erreichbar — prüfe SSH Verbindung zum mentat-node]")
-        return
-    messages = [{"role": "system", "content": system_prompt}]
-    speak("Mentat online. I am listening.")
-    time.sleep(1.5)
-    print("[Mentat online. Sprich und drücke Enter wenn fertig. Strg+C zum Beenden]\n")
-    while True:
-        try:
-            user_input = listen()
-        except KeyboardInterrupt:
-            speak("Goodbye.")
-            save_conversation(messages)
-            break
-        if not user_input or len(user_input) < 2:
-            continue
-        if user_input.lower() in ["exit", "quit", "goodbye", "bye"]:
-            speak("Goodbye.")
-            save_conversation(messages)
-            break
-        messages.append({"role": "user", "content": user_input})
-        reply = ask(messages)
-        if reply is None:
-            messages.pop()
-            speak("Connection error. Please try again.")
-            continue
-        if "[SEARCH:" in reply:
-            start = reply.find("[SEARCH:") + 8
-            end = reply.find("]", start)
-            query = reply[start:end].strip()
-            print(f"[Mentat sucht: {query}]")
-            results = search_web(query)
-            mine_to_palace(results, query.replace(" ", "_"))
-            messages.append({"role": "assistant", "content": reply})
-            messages.append({"role": "user",
-                             "content": f"[Search results for '{query}':\n{results}]"})
-            reply = ask(messages)
-            if reply is None:
-                speak("Search failed.")
-                continue
-            reply = clean_search_tags(reply)
-        messages.append({"role": "assistant", "content": reply})
-        print(f"\nMentat: {reply}\n")
-        speak(reply)
-        time.sleep(1.5)
-
-if __name__ == "__main__":
-    chat()
+cd ~/openwakeword-trainer
+source venv/bin/activate   # Python 3.10 venv — nicht System-Python!
+python train_wakeword.py --config configs/hey_mentat.yaml
+python train_wakeword.py --config configs/hey_mentat.yaml --from <schritt>  # Resume
 ```
 
 ---
 
 ## Roadmap
 
+- [x] Tool Calling: Mentat sucht selbst im Palace via `[PALACE:]`
+- [ ] Wakeword "Hey Mentat" mit echten Stimm-Samples verbessern
 - [ ] Wöchentlicher Kontext-Refresh via N8N + Telegram
-- [ ] Tool Calling: Mentat sucht selbst im Palace bei unbekannten Fragen
-- [ ] Wakeword "Hey Mentat" (custom openwakeword Modell)
 - [ ] Dokument-Mining: PDFs/Schulunterlagen ins Palace
 
 ---
 
 ## Tech Stack
 
-`llama3.1:8b` `Ollama` `MemPalace` `ChromaDB` `SearXNG` `faster-whisper` `Piper TTS` `Docker` `Raspberry Pi 5` `Hailo-10H` `Wake-on-LAN` `Tailscale`
+`llama3.1:8b` `Ollama` `MemPalace` `ChromaDB` `SearXNG` `faster-whisper` `Piper TTS` `openwakeword` `Docker` `N8N` `Raspberry Pi 5` `Hailo-10H` `Wake-on-LAN` `Tailscale`
