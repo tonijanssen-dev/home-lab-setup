@@ -41,12 +41,16 @@ Tower (Nobara KDE 43, RTX 3070)
 ├── faster-whisper (CUDA)           → Speech-to-Text
 ├── Piper TTS                       → Text-to-Speech
 ├── openwakeword                    → Hey Mentat Wakeword (in Entwicklung)
-└── mentat_voice.py                 → Voice-Chat Interface
+├── mentat_voice.py                 → Voice-Chat Interface
+├── mentat_text.py                  → Text-Chat Interface (Tower)
+└── mentat_web.py                   → Web Interface (Port 5555, Tailscale)
 ```
 
-Mentat hat zwei Interfaces:
+Mentat hat vier Interfaces:
 - **`mentat`** — Textbasierter Chat, läuft direkt auf dem mentat-ai-node
 - **`mentat-voice`** — Sprach-Chat, läuft auf dem Tower (Mikrofon + Lautsprecher)
+- **`mentat-text`** — Text-Chat direkt vom Tower, selbes Palace
+- **Web Interface** — Browser-basiert, erreichbar via Tailscale vom iPhone (Port 5555)
 
 ---
 
@@ -59,6 +63,8 @@ Mentat hat zwei Interfaces:
 - **Sprachein- und -ausgabe** — Whisper STT + Piper TTS, läuft lokal auf der GPU
 - **Wake-on-LAN** — `mentat` startet den Tower automatisch wenn er schläft
 - **Auto-Save + Auto-Mine** — Jedes Gespräch wird gespeichert und automatisch ins Palace geladen
+- **Zeitgefühl** — Aktuelles Datum und Uhrzeit werden automatisch bei jedem Start injiziert
+- **Web Interface** — Browser-basiert via Tailscale, auch vom iPhone nutzbar (Port 5555)
 
 ---
 
@@ -223,6 +229,42 @@ Enthält: Wer Mentat ist, wen er dient, wie er sich verhält, und welche Tools e
 
 ---
 
+## Web Interface (iPhone / Browser)
+
+Mentat ist über jeden Browser erreichbar — zuhause über die lokale IP, unterwegs über Tailscale.
+
+```bash
+# Flask installieren (Tower)
+pip install flask --break-system-packages
+
+# Als systemd Service einrichten (startet automatisch mit dem Tower)
+mkdir -p ~/.config/systemd/user
+cat > ~/.config/systemd/user/mentat-web.service << 'SVCEOF'
+[Unit]
+Description=Mentat Web Interface
+After=network.target ollama.service
+
+[Service]
+ExecStart=/usr/bin/python3 /home/<USER>/mentat_web.py
+Restart=always
+Environment=PATH=/home/<USER>/.local/bin:/usr/bin:/bin
+
+[Install]
+WantedBy=default.target
+SVCEOF
+
+systemctl --user enable mentat-web
+systemctl --user start mentat-web
+```
+
+Erreichbar unter:
+- **Heimnetz:** `http://<TOWER_IP>:5555`
+- **Unterwegs:** `http://<TOWER_TAILSCALE_IP>:5555`
+
+> Tailscale-IP ermitteln: `tailscale ip`
+
+---
+
 ## Wakeword — Hey Mentat
 
 Custom Wakeword via [openwakeword-trainer](https://github.com/lgpearson1771/openwakeword-trainer).
@@ -250,4 +292,4 @@ python train_wakeword.py --config configs/hey_mentat.yaml --from <schritt>  # Re
 
 ## Tech Stack
 
-`llama3.1:8b` `Ollama` `MemPalace` `ChromaDB` `SearXNG` `faster-whisper` `Piper TTS` `openwakeword` `Docker` `N8N` `Raspberry Pi 5` `Hailo-10H` `Wake-on-LAN` `Tailscale`
+`llama3.1:8b` `Ollama` `MemPalace` `ChromaDB` `SearXNG` `Flask` `faster-whisper` `Piper TTS` `openwakeword` `Docker` `N8N` `Raspberry Pi 5` `Hailo-10H` `Wake-on-LAN` `Tailscale`
