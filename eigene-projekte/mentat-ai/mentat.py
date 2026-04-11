@@ -35,8 +35,10 @@ def wake_up():
         capture_output=True, text=True
     )
     lines = result.stdout.strip().split('\n')
-    return '\n'.join(l for l in lines if not l.startswith('Wake-up')
-                     and not l.startswith('===') and not l.startswith('##'))
+    identity = '\n'.join(l for l in lines if not l.startswith('Wake-up')
+                         and not l.startswith('===') and not l.startswith('##'))
+    now = datetime.now().strftime("%A, %d %B %Y, %H:%M (Berlin/CEST)")
+    return f"{identity}\n\nCurrent date and time: {now}"
 
 def search_web(query):
     try:

@@ -14,18 +14,18 @@ from datetime import datetime
 OLLAMA_URL         = "http://localhost:11434/api/chat"
 SEARXNG_URL        = "http://<NODE_IP>:8888/search"
 MODEL              = "llama3.1:8b"
-PIPER_BIN          = "/home/tonij/piper/piper/piper"
-PIPER_MODEL        = "/home/tonij/piper/en_GB-northern_english_male-medium.onnx"
+PIPER_BIN          = "/home/<USER>/piper/piper/piper"
+PIPER_MODEL        = "/home/<USER>/piper/en_GB-northern_english_male-medium.onnx"
 WHISPER_MODEL      = "small"
 MIC_DEVICE         = 13
 MIC_SAMPLERATE     = 48000
-SSH_KEY            = "/home/tonij/.ssh/mentat_node"
+SSH_KEY            = "/home/<USER>/.ssh/mentat_node"
 NODE_IP            = "pi@<NODE_IP>"
 NODE_CHATS         = "/home/pi/mentat-chats"
 NODE_PALACE        = "/home/pi/mentat-palace"
 LOCAL_TMP          = "/tmp/mentat_chats"
 MEMPALACE_BIN      = "/home/pi/.local/bin/mempalace"
-WAKEWORD_MODEL     = "/home/tonij/openwakeword-trainer/export/hey_mentat.onnx"
+WAKEWORD_MODEL     = "/home/<USER>/openwakeword-trainer/export/hey_mentat.onnx"
 WAKEWORD_THRESHOLD = 0.5
 
 # ── Modelle laden ────────────────────────────────────────────────────────────
@@ -100,7 +100,9 @@ def ssh(cmd):
         capture_output=True, text=True)
 
 def wake_up():
-    return ssh("cat ~/.mempalace/identity.txt").stdout.strip()
+    identity = ssh("cat ~/.mempalace/identity.txt").stdout.strip()
+    now = datetime.now().strftime("%A, %d %B %Y, %H:%M (Berlin/CEST)")
+    return f"{identity}\n\nCurrent date and time: {now}"
 
 def search_web(query):
     try:
