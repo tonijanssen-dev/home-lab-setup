@@ -47,6 +47,7 @@ Dokumentation meines persönlichen Home Labs — aufgebaut für Ethical Hacking,
   - [N8N CVE Monitor](./eigene-projekte/cve-monitor/n8n-cve-monitor.md)
   - [Mentat Network Monitor](./eigene-projekte/network-monitor/n8n-network-monitor.md)
   - [Mentat — Persönlicher Offline-KI-Assistent](./eigene-projekte/mentat-ai/README.md)
+    - [BUILDING.md — Der Weg dorthin](./eigene-projekte/mentat-ai/BUILDING.md)
     - [mentat.py — Text-Chat Script](./eigene-projekte/mentat-ai/mentat.py)
     - [mentat_voice.py — Voice-Chat Script](./eigene-projekte/mentat-ai/mentat_voice.py)
     - [mentat_text.py — Text-Chat Script für Tower](./eigene-projekte/mentat-ai/mentat_text.py)
