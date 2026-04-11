@@ -254,4 +254,4 @@ Das Prinzip ist universell: Nervensystem, Psyche, Hund, Kind, LLM — Feedback-M
 
 ## Zeitaufwand
 
-Mentat wurde mit unterstützung in der Programmierung und Troubleshooting hergestellt, es wurden mehrere intensive Tage dafür gebraucht, ungefähre Arbeitszeit 30-40h. 
+Mentat wurde mit unterstützung von Claude (Anthropic) in der Code-Programmierung und Troubleshooting hergestellt, es wurden mehrere intensive Tage dafür gebraucht, ungefähre Arbeitszeit 30-40h.
