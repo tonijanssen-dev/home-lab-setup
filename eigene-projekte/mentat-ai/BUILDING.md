@@ -254,8 +254,4 @@ Das Prinzip ist universell: Nervensystem, Psyche, Hund, Kind, LLM — Feedback-M
 
 ## Zeitaufwand
 
-Mentat wurde in einem einzigen Claude-Chat gebaut — über ca. 4 Tage, davon ein ganzer Tag intensiv.
-
-Das ist keine Kritik am Prozess. Es ist ein Hinweis darauf dass echte Projekte Zeit brauchen — besonders wenn man gleichzeitig FISI-Schüler ist, Hund hat, und keine vorherige ML-Erfahrung mitbringt.
-
-Der Weg war das Projekt.
+Mentat wurde mit unterstützung in der Programmierung und Troubleshooting hergestellt, es wurden mehrere intensive Tage dafür gebraucht, ungefähre Arbeitszeit 30-40h. 
